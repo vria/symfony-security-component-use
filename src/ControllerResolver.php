@@ -10,14 +10,19 @@ use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
  */
 class ControllerResolver implements ControllerResolverInterface
 {
+    /** @var callable[] */
+    private $routes;
+
     /** @var callable */
     private $default;
 
     /**
+     * @param callable[] $routes
      * @param callable $default
      */
-    public function __construct(callable $default)
+    public function __construct(array $routes, callable $default)
     {
+        $this->routes = $routes;
         $this->default = $default;
     }
 
@@ -26,6 +31,12 @@ class ControllerResolver implements ControllerResolverInterface
      */
     public function getController(Request $request)
     {
+        foreach ($this->routes as $pattern => $controller) {
+            if (preg_match($pattern, $request->getPathInfo())) {
+                return $controller;
+            }
+        }
+
         return $this->default;
     }
 }

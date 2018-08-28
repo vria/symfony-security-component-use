@@ -30,6 +30,21 @@ class Controller
     /**
      * @return Response
      */
+    public function loginFormAction()
+    {
+        return new Response(<<<END
+<form action="/front/login_check" method="POST">
+    <input type="text" name="_username" placeholder="username">
+    <input type="password" name="_password" placeholder="password">
+    <input type="submit">
+</form>
+END
+        );
+    }
+
+    /**
+     * @return Response
+     */
     public function defaultAction()
     {
         $token = $this->tokenStorage->getToken();
