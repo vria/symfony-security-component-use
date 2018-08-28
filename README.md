@@ -20,3 +20,7 @@ Sécurisation de vos applications web à l’aide du composant Security de Symfo
 ### Task 5 :
 
 /main?auth_user=vlad&auth_pw=pass
+
+### Task 6 :
+
+/main?auth_user=vlad&auth_pw=pass

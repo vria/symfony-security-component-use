@@ -11,16 +11,25 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
-use Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider;
+use Symfony\Component\Security\Http\AccessMap;
+use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Http\FirewallMap;
 use Symfony\Component\Security\Http\Firewall;
-use Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener;
+use Symfony\Component\Security\Http\Firewall\ExceptionListener;
+use Symfony\Component\Security\Http\Firewall\BasicAuthenticationListener;
+use Symfony\Component\Security\Http\Firewall\AccessListener;
 use Symfony\Component\Security\Core\User\InMemoryUserProvider;
 use Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider;
 use Symfony\Component\Security\Core\User\UserChecker;
 use Symfony\Component\Security\Core\Encoder\EncoderFactory;
 use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
+use Symfony\Component\Security\Http\EntryPoint\BasicAuthenticationEntryPoint;
+use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolver;
+use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
+use Symfony\Component\Security\Core\Authentication\Token\RememberMeToken;
+use Symfony\Component\Security\Core\Authorization\AccessDecisionManager;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 $request = Request::createFromGlobals(); // HTTP request.
 $tokenStorage = new TokenStorage(); // Service that stores user token.
@@ -55,20 +64,33 @@ $encoderFactory = new EncoderFactory([
 // Then it will verify credentials (encoded password).
 $mainAuthProvider = new DaoAuthenticationProvider($mainUserProvider, $mainUserChecker, 'main', $encoderFactory);
 
-// Create main security listener that handles authentication.
-$mainSecurityListener = new \App\Security\MainSecurityListener($tokenStorage, $mainAuthProvider);
+// Entry point helps user to authenticate.
+// In the case of HTTP basic authentication it returns 401 response to invite user to enter its credentials.
+$basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint('Secured area');
 
-// Create a security listener that adds anonymous token if none is already present.
-$anonymousAuthenticationProvider = new AnonymousAuthenticationProvider('secret');
-$anonListener = new AnonymousAuthenticationListener($tokenStorage, 'secret', null, $anonymousAuthenticationProvider);
+// Create HTTP basic security listener that extracts credentials from headers (RFC 7617).
+$mainSecurityListener = new BasicAuthenticationListener($tokenStorage, $mainAuthProvider, 'main', $basicAuthenticationEntryPoint);
+
+// Access listener will throw an exception when no token is already present.
+$accessDecisionManager = new AccessDecisionManager();
+$accessMap = new AccessMap();
+$accessListener = new AccessListener($tokenStorage, $accessDecisionManager, $accessMap, $mainAuthProvider);
 
 // Create firewall map and add main security listener under URLs starting with "/main".
 $firewallMap = new FirewallMap();
-$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $anonListener]);
+$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $accessListener]);
 
 // Create firewall and add it to dispatcher.
 $firewall = new Firewall($firewallMap, $dispatcher);
 $dispatcher->addSubscriber($firewall);
+
+// ExceptionListener catches authentication exception and converts them to Response instance.
+// In this case it invites user to enter its credentials by returning 401 response.
+$authTrustResolver = new AuthenticationTrustResolver(AnonymousToken::class, RememberMeToken::class);
+$httpUtils = new HttpUtils();
+$exceptionListener = new ExceptionListener($tokenStorage, $authTrustResolver, $httpUtils, 'main', $basicAuthenticationEntryPoint);
+$dispatcher->addListener(KernelEvents::EXCEPTION, array($exceptionListener, 'onKernelException'), 1);
+
 
 $response = $kernel->handle($request); // Launch kernel and retrieve response.
 $response->send(); // Send response.
