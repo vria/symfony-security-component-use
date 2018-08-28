@@ -5,6 +5,8 @@ namespace App\Security;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Http\Firewall\ListenerInterface;
 
 /**
@@ -15,12 +17,17 @@ class MainSecurityListener implements ListenerInterface
     /** @var TokenStorageInterface */
     private $tokenStorage;
 
+    /** @var UserProviderInterface */
+    private $userProvider;
+
     /**
      * @param TokenStorageInterface $tokenStorage
+     * @param UserProviderInterface $userProvider
      */
-    public function __construct(TokenStorageInterface $tokenStorage)
+    public function __construct(TokenStorageInterface $tokenStorage, UserProviderInterface $userProvider)
     {
         $this->tokenStorage = $tokenStorage;
+        $this->userProvider = $userProvider;
     }
 
     /**
@@ -28,13 +35,19 @@ class MainSecurityListener implements ListenerInterface
      */
     public function handle(GetResponseEvent $event)
     {
+        // Extract authentication credentials.
         $request = $event->getRequest();
-        $user = $request->query->get('auth_user');
+        $username = $request->query->get('auth_user');
         $password = $request->query->get('auth_pw');
 
-        if ($user === 'vlad' && $password === 'pass') {
-            $token = new UsernamePasswordToken($user, $password, 'main', ['ROLE_USER']);
-            $this->tokenStorage->setToken($token);
+        try {
+            $user = $this->userProvider->loadUserByUsername($username);
+            if ($user->getPassword() === $password) {
+                // Create token is credentials are valid.
+                $token = new UsernamePasswordToken($user, $password, 'main', $user->getRoles());
+                $this->tokenStorage->setToken($token);
+            }
+        } catch (UsernameNotFoundException $e) {
         }
     }
 }

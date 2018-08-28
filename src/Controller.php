@@ -33,11 +33,13 @@ class Controller
     public function defaultAction()
     {
         $token = $this->tokenStorage->getToken();
+        $user = $token ? $token->getUser() : null;
 
         return new Response(
             'Request uri: '.$this->request->getRequestUri().'<br>'
             .'Token: '.(is_object($token) ? get_class($token) : gettype($token)).'<br>'
-            .'Username: '.($token ? $token->getUsername(): 'NULL')
+            .'Username: '.($token ? $token->getUsername(): 'NULL').'<br>'
+            .'User class: '.(is_object($user) ? get_class($user): gettype($user))
         );
     }
 }

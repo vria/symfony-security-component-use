@@ -15,6 +15,7 @@ use Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticat
 use Symfony\Component\Security\Http\FirewallMap;
 use Symfony\Component\Security\Http\Firewall;
 use Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener;
+use Symfony\Component\Security\Core\User\InMemoryUserProvider;
 
 $request = Request::createFromGlobals(); // HTTP request.
 $tokenStorage = new TokenStorage(); // Service that stores user token.
@@ -27,8 +28,13 @@ $controllerResolver = new \App\ControllerResolver([$controller, 'defaultAction']
 // Kernel is in charge of converting a Request into a Response by using the event dispatcher.
 $kernel = new HttpKernel($dispatcher, $controllerResolver);
 
+// Create user provider that will be used by authentication listener.
+$mainUserProvider = new InMemoryUserProvider([
+    'vlad' => ['password' => 'pass', 'roles' => ['ROLE_USER']],
+]);
+
 // Create main security listener that handles authentication.
-$securityListener = new \App\Security\MainSecurityListener($tokenStorage);
+$mainSecurityListener = new \App\Security\MainSecurityListener($tokenStorage, $mainUserProvider);
 
 // Create a security listener that adds anonymous token if none is already present.
 $anonymousAuthenticationProvider = new AnonymousAuthenticationProvider('secret');
@@ -36,7 +42,7 @@ $anonListener = new AnonymousAuthenticationListener($tokenStorage, 'secret', nul
 
 // Create firewall map and add main security listener under URLs starting with "/main".
 $firewallMap = new FirewallMap();
-$firewallMap->add(new RequestMatcher('^/main'), [$securityListener, $anonListener]);
+$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $anonListener]);
 
 // Create firewall and add it to dispatcher.
 $firewall = new Firewall($firewallMap, $dispatcher);
