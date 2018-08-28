@@ -1,0 +1,20 @@
+{
+    "name": "vria/symfony-security-component-use",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Riabchenko Vlad",
+            "email": "contact@vria.eu"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^7.1.3",
+        "symfony/security": "^4.1",
+        "symfony/http-foundation": "^4.1"
+    }
+}
