@@ -92,21 +92,31 @@ $accessListener = new AccessListener($tokenStorage, $accessDecisionManager, $acc
 $firewallMap = new FirewallMap();
 $firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $accessListener]);
 
+// ContextListener retrieves previously authenticated token from the session during REQUEST event.
+// It also saves token during RESPONSE event.
 $contextListener = new ContextListener($tokenStorage, [$mainUserProvider], 'front', null, $dispatcher);
 
 $sessionAuthenticationStrategy = new SessionAuthenticationStrategy(SessionAuthenticationStrategy::MIGRATE);
 $successHandler = new DefaultAuthenticationSuccessHandler($httpUtils, ['default_target_path' => '/front/success']);
 $failureHandler = new DefaultAuthenticationFailureHandler($kernel, $httpUtils, ['login_path' => '/front/login']);
+
+// Exactly the same authentication provider as for HTTP basic except '$providerKey'.
 $frontAuthProvider = new DaoAuthenticationProvider($mainUserProvider, $mainUserChecker, 'front', $encoderFactory);
+
+// Listens for login form being send (POST to '/front/login_check').
+// It extracts credentials, creates token, authenticates it and puts it to the token storage.
 $formAuthListener = new UsernamePasswordFormAuthenticationListener(
     $tokenStorage,
     $frontAuthProvider,
     $sessionAuthenticationStrategy,
     $httpUtils,
     'front',
-    $successHandler,
-    $failureHandler,
-    ['check_path' => '/front/login_check']
+    $successHandler, // Redirect user to '/front/success' if credentials are valid
+    $failureHandler, // Redirect user to '/front/login' if credentials are invalid
+    [
+        'check_path' => '/front/login_check',
+        'post_only' => true,
+    ] // Act only on POST to '/front/login_check'
 );
 
 $firewallMap->add(new RequestMatcher('^/front'), [$contextListener, $formAuthListener]);
