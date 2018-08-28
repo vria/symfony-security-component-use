@@ -16,6 +16,11 @@ use Symfony\Component\Security\Http\FirewallMap;
 use Symfony\Component\Security\Http\Firewall;
 use Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener;
 use Symfony\Component\Security\Core\User\InMemoryUserProvider;
+use Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider;
+use Symfony\Component\Security\Core\User\UserChecker;
+use Symfony\Component\Security\Core\Encoder\EncoderFactory;
+use Symfony\Component\Security\Core\User\User;
+use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
 
 $request = Request::createFromGlobals(); // HTTP request.
 $tokenStorage = new TokenStorage(); // Service that stores user token.
@@ -30,11 +35,28 @@ $kernel = new HttpKernel($dispatcher, $controllerResolver);
 
 // Create user provider that will be used by authentication listener.
 $mainUserProvider = new InMemoryUserProvider([
-    'vlad' => ['password' => 'pass', 'roles' => ['ROLE_USER']],
+    'vlad' => [
+        'password' => '$2y$10$zDUW3BF4T5ZVloDZqp0SN.1Ic4DG3xfxHUel5DXWkkpvaP0G8qXnq', // encoded 'pass'
+        'roles' => ['ROLE_USER'],
+        'enabled' => true,
+    ]
 ]);
 
+// And object that checks whether a user is non-locked, enabled, not expired, etc.
+$mainUserChecker = new UserChecker();
+
+// A factory that specifies encoding algorithm to each user class.
+$encoderFactory = new EncoderFactory([
+    User::class => new BCryptPasswordEncoder(10)
+]);
+
+// Create a provider to which security listener will delegate an authentication.
+// It uses a user provider to retrieve a user by username.
+// Then it will verify credentials (encoded password).
+$mainAuthProvider = new DaoAuthenticationProvider($mainUserProvider, $mainUserChecker, 'main', $encoderFactory);
+
 // Create main security listener that handles authentication.
-$mainSecurityListener = new \App\Security\MainSecurityListener($tokenStorage, $mainUserProvider);
+$mainSecurityListener = new \App\Security\MainSecurityListener($tokenStorage, $mainAuthProvider);
 
 // Create a security listener that adds anonymous token if none is already present.
 $anonymousAuthenticationProvider = new AnonymousAuthenticationProvider('secret');

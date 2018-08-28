@@ -3,10 +3,10 @@
 namespace App\Security;
 
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Firewall\ListenerInterface;
 
 /**
@@ -17,17 +17,17 @@ class MainSecurityListener implements ListenerInterface
     /** @var TokenStorageInterface */
     private $tokenStorage;
 
-    /** @var UserProviderInterface */
-    private $userProvider;
+    /** @var AuthenticationManagerInterface */
+    private $authenticationManager;
 
     /**
      * @param TokenStorageInterface $tokenStorage
-     * @param UserProviderInterface $userProvider
+     * @param AuthenticationManagerInterface $authenticationManager
      */
-    public function __construct(TokenStorageInterface $tokenStorage, UserProviderInterface $userProvider)
+    public function __construct(TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager)
     {
         $this->tokenStorage = $tokenStorage;
-        $this->userProvider = $userProvider;
+        $this->authenticationManager = $authenticationManager;
     }
 
     /**
@@ -38,16 +38,21 @@ class MainSecurityListener implements ListenerInterface
         // Extract authentication credentials.
         $request = $event->getRequest();
         $username = $request->query->get('auth_user');
-        $password = $request->query->get('auth_pw');
+        $credentials = $request->query->get('auth_pw');
 
-        try {
-            $user = $this->userProvider->loadUserByUsername($username);
-            if ($user->getPassword() === $password) {
-                // Create token is credentials are valid.
-                $token = new UsernamePasswordToken($user, $password, 'main', $user->getRoles());
+        if ($username && $credentials) {
+            try {
+                // Token is not authenticated because no role is passed.
+                $token = new UsernamePasswordToken($username, $credentials, 'main');
+
+                // Try to authenticate the token.
+                // If there is an authentication error an AuthenticationException is thrown.
+                $token = $this->authenticationManager->authenticate($token);
+
+                // Add authenticated token to storage.
                 $this->tokenStorage->setToken($token);
+            } catch (AuthenticationException $e) {
             }
-        } catch (UsernameNotFoundException $e) {
         }
     }
 }
