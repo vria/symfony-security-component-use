@@ -1,10 +1,52 @@
-Sécurisation de vos applications web à l’aide du composant Security de Symfony
-====
+# Securing your web applications using the Symfony Security component
 
-### Task 1 :
+The code from [the conference of AFUP](https://www.meetup.com/fr-FR/afup-paris-php/events/253944518/)
+that was held 28/08/2018 at JoliCode, Paris.
 
-/?auth_user=vlad&auth_pw=pass
+The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavRiabchenko/scurisation-de-vos-applications-web-laide-du-composant-security-de-symfony).
 
-### Task 2 :
+### Task 1
 
-/?auth_user=vlad&auth_pw=pass
+Authenticate each request to the application using an identifier and a password.
+To facilitate the task we expose a "front controller" to the user. 
+This is a single PHP file through which all requests are processed. 
+
+An [index.php] as a front controller will call SecurityListener at every request.
+The purpose of SecurityListener as to authenticate a request, in particular :
+
+- extract credentials from the Request object (query parameters "auth_user" and "auth_pw"),
+- verify credentials,
+- create Token if credentials are valid,
+- pass Token into TokenStorage. The last is a service accessible by any other code, 
+e.g. [index.php].  
+
+Url to test (with server rewrite rules configured): /?auth_user=vlad&auth_pw=pass
+
+Url to test (without server rewrite rules): /?auth_user=vlad&auth_pw=pass
+
+
+### Task 2
+
+*Centralize authentication in a firewall so that you can use multiple authentication systems.*
+
+Firewall (Symfony\Component\Security\Http\Firewall) is a security listener that 
+uses a FirewallMap to register security listeners for the given request.
+Firewall allows for several authentication systems in single application.
+It also help to enable a security system conditionally, e.g. under url that starts with "/main".
+
+Resume of the changes:
+- in [index.php] the Kernel instance is created to treat the user's request,
+- in [index.php] the Event dispatcher is created to dispatch events (e.g. KernelEvents::REQUEST),
+- [Controller] and [ControllerResolver] are added to produce a response to any request,
+- SecurityListener is renamed to [MainSecurityListener] to emphasize the fact that this 
+listener is not the only security listener it is one among the others, 
+- [MainSecurityListener] implements [Symfony\Component\Security\Http\Firewall\ListenerInterface]
+because Firewall requires that all security listener implement it,
+- Firewall hooks to KernelEvents::REQUEST event and activates [MainSecurityListener] 
+only when the request path starts with "/main". 
+
+
+[index.php]: public/index.php
+[Controller]: src/Controller.php
+[ControllerResolver]: src/ControllerResolver.php
+[MainSecurityListener]: src/Security/MainSecurityListener.php
