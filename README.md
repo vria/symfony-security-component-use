@@ -7,7 +7,8 @@ The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavR
 
 ### Task 1
 
-Authenticate each request to the application using an identifier and a password.
+*Authenticate each request to the application using an identifier and a password.*
+
 To facilitate the task we expose a "front controller" to the user. 
 This is a single PHP file through which all requests are processed. 
 
@@ -44,6 +45,12 @@ listener is not the only security listener it is one among the others,
 because Firewall requires that all security listener implement it,
 - Firewall hooks to KernelEvents::REQUEST event and activates [MainSecurityListener] 
 only when the request path starts with "/main". 
+
+Url to test (authenticated): /main?auth_user=vlad&auth_pw=pass
+
+Url to test (not authenticated): /secondary?auth_user=vlad&auth_pw=pass
+
+Url to test (not authenticated): /main?auth_user=gordon&auth_pw=freeman05
 
 
 [index.php]: public/index.php
