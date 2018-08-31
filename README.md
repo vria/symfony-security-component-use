@@ -5,9 +5,10 @@ that was held 28/08/2018 at JoliCode, Paris.
 
 The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavRiabchenko/scurisation-de-vos-applications-web-laide-du-composant-security-de-symfony).
 
-### Task 1 :
+### Task 1
 
-Authenticate each request to the application using an identifier and a password.
+*Authenticate each request to the application using an identifier and a password.*
+
 To facilitate the task we expose a "front controller" to the user. 
 This is a single PHP file through which all requests are processed. 
 
