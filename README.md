@@ -5,8 +5,8 @@ that was held 28/08/2018 at JoliCode, Paris.
 
 The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavRiabchenko/scurisation-de-vos-applications-web-laide-du-composant-security-de-symfony).
 
-:arrow_left: [Task 1](/vria/symfony-security-component-use/tree/1-primitive-listener/) | Task 2 | [Task 3](/vria/symfony-security-component-use/tree/3-anonymous-token) :arrow_right:
---- | --- | ---
+| :arrow_left: [Task 1] | Task 2 | [Task 3] :arrow_right: |
+| --- | --- | --- |
 
 *Centralize authentication in a firewall so that you can use multiple authentication systems.*
 
@@ -32,9 +32,11 @@ Urls to test:
 * `/main?auth_user=gordon&auth_pw=freeman05` (not authenticated)
 * `/secondary?auth_user=vlad&auth_pw=pass` (not authenticated)
 
-Urls to test without rewrite rules must start with `/index.php`, e.g. `/main?auth_user=vlad&auth_pw=pass`.
+Urls to test without rewrite rules must start with `/index.php`, e.g. `/index.php/main?auth_user=vlad&auth_pw=pass`.
 
 [index.php]: public/index.php
 [Controller]: src/Controller.php
 [ControllerResolver]: src/ControllerResolver.php
 [MainSecurityListener]: src/Security/MainSecurityListener.php
+[Task 1]: https://github.com/vria/symfony-security-component-use/tree/1-primitive-listener
+[Task 3]: https://github.com/vria/symfony-security-component-use/tree/3-anonymous-token
