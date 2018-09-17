@@ -5,28 +5,8 @@ that was held 28/08/2018 at JoliCode, Paris.
 
 The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavRiabchenko/scurisation-de-vos-applications-web-laide-du-composant-security-de-symfony).
 
-### Task 1
-
-*Authenticate each request to the application using an identifier and a password.*
-
-To facilitate the task we expose a "front controller" to the user. 
-This is a single PHP file through which all requests are processed. 
-
-An [index.php] as a front controller will call SecurityListener at every request.
-The purpose of SecurityListener as to authenticate a request, in particular :
-
-- extract credentials from the Request object (query parameters "auth_user" and "auth_pw"),
-- verify credentials,
-- create Token if credentials are valid,
-- pass Token into TokenStorage. The last is a service accessible by any other code, 
-e.g. [index.php].  
-
-Url to test (with server rewrite rules configured): /?auth_user=vlad&auth_pw=pass
-
-Url to test (without server rewrite rules): /?auth_user=vlad&auth_pw=pass
-
-
-### Task 2
+[:arrow_left: Task 1](/vria/symfony-security-component-use/tree/1-primitive-listener/) | Task 2 | [:arrow_right: Task 3](/vria/symfony-security-component-use/tree/3-anonymous-token)
+--- | --- | ---
 
 *Centralize authentication in a firewall so that you can use multiple authentication systems.*
 
@@ -46,12 +26,13 @@ because Firewall requires that all security listener implement it,
 - Firewall hooks to KernelEvents::REQUEST event and activates [MainSecurityListener] 
 only when the request path starts with "/main". 
 
-Url to test (authenticated): /main?auth_user=vlad&auth_pw=pass
+Urls to test:
 
-Url to test (not authenticated): /secondary?auth_user=vlad&auth_pw=pass
+* `/main?auth_user=vlad&auth_pw=pass` (authenticated)
+* `/main?auth_user=gordon&auth_pw=freeman05` (not authenticated)
+* `/secondary?auth_user=vlad&auth_pw=pass` (not authenticated)
 
-Url to test (not authenticated): /main?auth_user=gordon&auth_pw=freeman05
-
+Urls to test without rewrite rules must start with `/index.php`, e.g. `/main?auth_user=vlad&auth_pw=pass`.
 
 [index.php]: public/index.php
 [Controller]: src/Controller.php

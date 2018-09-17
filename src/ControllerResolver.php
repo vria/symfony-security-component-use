@@ -6,6 +6,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 
 /**
+ * @see ControllerResolverInterface for more information about controller resolvers.
+ *
  * @author Vlad Riabchenko <vriabchenko@webnet.fr>
  */
 class ControllerResolver implements ControllerResolverInterface

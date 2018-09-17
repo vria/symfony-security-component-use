@@ -28,6 +28,8 @@ class Controller
     }
 
     /**
+     * Default action to execute on every request.
+     *
      * @return Response
      */
     public function defaultAction()
