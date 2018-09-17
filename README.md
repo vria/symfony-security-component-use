@@ -5,7 +5,7 @@ that was held 28/08/2018 at JoliCode, Paris.
 
 The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavRiabchenko/scurisation-de-vos-applications-web-laide-du-composant-security-de-symfony).
 
-:arrow_left: [Task 1](/vria/symfony-security-component-use/tree/1-primitive-listener/) | Task 2 | :arrow_right: [Task 3](/vria/symfony-security-component-use/tree/3-anonymous-token)
+:arrow_left: [Task 1](/vria/symfony-security-component-use/tree/1-primitive-listener/) | Task 2 | [Task 3](/vria/symfony-security-component-use/tree/3-anonymous-token) :arrow_right:
 --- | --- | ---
 
 *Centralize authentication in a firewall so that you can use multiple authentication systems.*
