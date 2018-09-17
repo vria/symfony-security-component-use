@@ -23,7 +23,7 @@ e.g. [index.php].
 
 Url to test (with server rewrite rules configured): /?auth_user=vlad&auth_pw=pass
 
-Url to test (without server rewrite rules): /?auth_user=vlad&auth_pw=pass
+Url to test (without server rewrite rules): /index.php?auth_user=vlad&auth_pw=pass
 
 [SecurityListener]: src/Security/SecurityListener.php
 [index.php]: public/index.php
