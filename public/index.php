@@ -30,7 +30,7 @@ $kernel = new HttpKernel($dispatcher, $controllerResolver);
 
 // Create user provider that will be used by authentication listener.
 $mainUserProvider = new InMemoryUserProvider([
-    'vlad' => ['password' => 'pass', 'roles' => ['ROLE_USER']],
+    'gordon' => ['password' => 'freeman', 'roles' => ['ROLE_USER']],
 ]);
 
 // Create main security listener that handles authentication.

@@ -35,13 +35,15 @@ class MainSecurityListener implements ListenerInterface
      */
     public function handle(GetResponseEvent $event)
     {
-        // Extract authentication credentials.
+        // Extract credentials from request.
         $request = $event->getRequest();
         $username = $request->query->get('auth_user');
         $password = $request->query->get('auth_pw');
 
         try {
+            // try to load a user object by username passed in request.
             $user = $this->userProvider->loadUserByUsername($username);
+
             if ($user->getPassword() === $password) {
                 // Create token is credentials are valid.
                 $token = new UsernamePasswordToken($user, $password, 'main', $user->getRoles());
