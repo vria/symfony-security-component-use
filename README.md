@@ -15,7 +15,7 @@ uses a `FirewallMap` to register security listeners for the given request.
 Firewall allows for several authentication systems in single application.
 It also help to enable a security system conditionally, e.g. under url that starts with "/main".
 
-Resume of the changes:
+Resume of changes:
 - in [index.php] the `Kernel` instance is created to treat the user's request,
 - in [index.php] the Event dispatcher is created to dispatch events (e.g. KernelEvents::REQUEST),
 - [Controller] and [ControllerResolver] are added to produce a response to any request,
