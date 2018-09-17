@@ -5,7 +5,7 @@ that was held 28/08/2018 at JoliCode, Paris.
 
 The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavRiabchenko/scurisation-de-vos-applications-web-laide-du-composant-security-de-symfony).
 
-| | Task 1 | [Task 2](/vria/symfony-security-component-use/tree/2-firewall/) :arrow_right: |
+| | Task 1 | [Task 2] :arrow_right: |
 | --- | --- | --- |
 
 *Authenticate each request to the application using an identifier and a password.*
@@ -22,9 +22,13 @@ The purpose of [SecurityListener] as to authenticate a request, in particular :
 - pass Token into TokenStorage. The last is a service accessible by any other code, 
 e.g. [index.php].  
 
-Url to test (with server rewrite rules configured): /?auth_user=vlad&auth_pw=pass
+Urls to test:
 
-Url to test (without server rewrite rules): /index.php?auth_user=vlad&auth_pw=pass
+* `/?auth_user=vlad&auth_pw=pass` (authenticated)
+* `/` (not authenticated)
+
+Urls to test without rewrite rules must start with `/index.php`, e.g. `/index.php?auth_user=vlad&auth_pw=pass`.
 
 [SecurityListener]: src/Security/SecurityListener.php
 [index.php]: public/index.php
+[Task 2]: https://github.com/vria/symfony-security-component-use/tree/2-firewall
