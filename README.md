@@ -10,13 +10,13 @@ The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavR
 
 *Centralize authentication in a firewall so that you can use multiple authentication systems.*
 
-Firewall (Symfony\Component\Security\Http\Firewall) is a security listener that 
-uses a FirewallMap to register security listeners for the given request.
+`Symfony\Component\Security\Http\Firewall` is a security listener that 
+uses a `FirewallMap` to register security listeners for the given request.
 Firewall allows for several authentication systems in single application.
 It also help to enable a security system conditionally, e.g. under url that starts with "/main".
 
 Resume of the changes:
-- in [index.php] the Kernel instance is created to treat the user's request,
+- in [index.php] the `Kernel` instance is created to treat the user's request,
 - in [index.php] the Event dispatcher is created to dispatch events (e.g. KernelEvents::REQUEST),
 - [Controller] and [ControllerResolver] are added to produce a response to any request,
 - SecurityListener is renamed to [MainSecurityListener] to emphasize the fact that this 
@@ -28,11 +28,12 @@ only when the request path starts with "/main".
 
 Urls to test:
 
-* `/main?auth_user=vlad&auth_pw=pass` (authenticated)
+* `/main?auth_user=gordon&auth_pw=freeman` (authenticated)
+* `/main` (not authenticated)
 * `/main?auth_user=gordon&auth_pw=freeman05` (not authenticated)
-* `/secondary?auth_user=vlad&auth_pw=pass` (not authenticated)
+* `/secondary?auth_user=gordon&auth_pw=freeman` (not authenticated)
 
-Urls to test without rewrite rules must start with `/index.php`, e.g. `/index.php/main?auth_user=vlad&auth_pw=pass`.
+Urls to test without rewrite rules must start with `/index.php`, e.g. `/index.php/main?auth_user=gordon&auth_pw=freeman`.
 
 [index.php]: public/index.php
 [Controller]: src/Controller.php

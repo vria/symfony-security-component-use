@@ -33,7 +33,7 @@ class MainSecurityListener implements ListenerInterface
         $user = $request->query->get('auth_user');
         $password = $request->query->get('auth_pw');
 
-        if ($user === 'vlad' && $password === 'pass') {
+        if ($user === 'gordon' && $password === 'freeman') {
             // Credentials are valid.
             // Create a token with user object, credentials, provider key and roles
             $token = new UsernamePasswordToken($user, $password, 'main', ['ROLE_USER']);

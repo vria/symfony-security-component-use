@@ -20,7 +20,7 @@ $dispatcher = new EventDispatcher();
 
 // Controller creates a response to send to the user.
 $controller = new \App\Controller($request, $tokenStorage);
-$controllerResolver = new \App\ControllerResolver([$controller, 'action']);
+$controllerResolver = new \App\ControllerResolver([$controller, 'defaultAction']);
 
 // Kernel is in charge of converting a Request into a Response by using the event dispatcher.
 $kernel = new HttpKernel($dispatcher, $controllerResolver);
