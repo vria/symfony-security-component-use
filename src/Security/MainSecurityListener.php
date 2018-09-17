@@ -35,7 +35,7 @@ class MainSecurityListener implements ListenerInterface
      */
     public function handle(GetResponseEvent $event)
     {
-        // Extract authentication credentials.
+        // Extract credentials from request.
         $request = $event->getRequest();
         $username = $request->query->get('auth_user');
         $credentials = $request->query->get('auth_pw');
