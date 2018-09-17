@@ -8,7 +8,7 @@ use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 /**
  * @see ControllerResolverInterface for more information about controller resolvers.
  *
- * @author Vlad Riabchenko <vriabchenko@webnet.fr>
+ * @author Vlad Riabchenko <contact@vria.eu>
  */
 class ControllerResolver implements ControllerResolverInterface
 {
