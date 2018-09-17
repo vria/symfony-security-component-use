@@ -12,7 +12,7 @@ The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavR
 
 [MainSecurityListener] should be independent of the method the users are stored and fetched.
 This logic is encapsulated in user providers that implement `Symfony\Component\Security\Core\User\UserProviderInterface`.
-For instance, [InMemoryUserProvider] is used to store users in memory.
+For instance, `InMemoryUserProvider` is used to store users in memory.
 [MainSecurityListener] therefore will delegate the searching of users to user provider.
 
 Resume of changes:
