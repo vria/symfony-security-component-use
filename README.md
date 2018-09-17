@@ -5,7 +5,8 @@ that was held 28/08/2018 at JoliCode, Paris.
 
 The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavRiabchenko/scurisation-de-vos-applications-web-laide-du-composant-security-de-symfony).
 
-### Task 1
+| | Task 1 | [Task 2](/vria/symfony-security-component-use/tree/2-firewall/) :arrow_right: |
+| --- | --- | --- |
 
 *Authenticate each request to the application using an identifier and a password.*
 
