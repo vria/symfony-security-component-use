@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
- * @author Vlad Riabchenko <vriabchenko@webnet.fr>
+ * @author Vlad Riabchenko <contact@vria.eu>
  */
 class Controller
 {
@@ -28,6 +28,8 @@ class Controller
     }
 
     /**
+     * Default action to execute on every request.
+     *
      * @return Response
      */
     public function loginFormAction()
