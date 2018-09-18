@@ -44,11 +44,11 @@ $kernel = new HttpKernel($dispatcher, $controllerResolver);
 
 // Create user provider that will be used by authentication listener.
 $mainUserProvider = new InMemoryUserProvider([
-    'vlad' => [
-        'password' => '$2y$10$zDUW3BF4T5ZVloDZqp0SN.1Ic4DG3xfxHUel5DXWkkpvaP0G8qXnq', // encoded 'pass'
+    'gordon' => [
+        'password' => '$2y$10$50MJW4ov/LHLBdl6uYsxI.7MdWYoJ8K1MqBXfG677nOXbsSVVue6i', // encoded 'freeman'
         'roles' => ['ROLE_USER'],
         'enabled' => true,
-    ]
+    ],
 ]);
 
 // And object that checks whether a user is non-locked, enabled, not expired, etc.
@@ -65,7 +65,7 @@ $encoderFactory = new EncoderFactory([
 $mainAuthProvider = new DaoAuthenticationProvider($mainUserProvider, $mainUserChecker, 'main', $encoderFactory);
 
 // Entry point helps user to authenticate.
-// In the case of HTTP basic authentication it returns 401 response to invite user to enter its credentials.
+// In the case of HTTP basic authentication it returns 401 response to invite user to enter his/her credentials.
 $basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint('Secured area');
 
 // Create HTTP basic security listener that extracts credentials from headers (RFC 7617).
