@@ -24,10 +24,10 @@ e.g. [index.php].
 
 Urls to test:
 
-* `/?auth_user=vlad&auth_pw=pass` (authenticated)
+* `/?auth_user=gordon&auth_pw=freeman` (authenticated)
 * `/` (not authenticated)
 
-Urls to test without rewrite rules must start with `/index.php`, e.g. `/index.php?auth_user=vlad&auth_pw=pass`.
+Urls to test without rewrite rules must start with `/index.php`, e.g. `/index.php?auth_user=gordon&auth_pw=freeman`.
 
 [SecurityListener]: src/Security/SecurityListener.php
 [index.php]: public/index.php
