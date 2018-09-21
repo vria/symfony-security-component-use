@@ -35,7 +35,6 @@ use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolver;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\RememberMeToken;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManager;
-use Symfony\Component\HttpKernel\KernelEvents;
 
 $request = Request::createFromGlobals(); // HTTP request.
 $session = new Session();
@@ -53,6 +52,9 @@ $controllerResolver = new \App\ControllerResolver(
 
 // Kernel is in charge of converting a Request into a Response by using the event dispatcher.
 $kernel = new HttpKernel($dispatcher, $controllerResolver);
+
+// Create firewall map
+$firewallMap = new FirewallMap();
 
 // Create user provider that will be used by authentication listener.
 $mainUserProvider = new InMemoryUserProvider([
@@ -88,11 +90,13 @@ $accessDecisionManager = new AccessDecisionManager();
 $accessMap = new AccessMap();
 $accessListener = new AccessListener($tokenStorage, $accessDecisionManager, $accessMap, $mainAuthProvider);
 
-// Create firewall map
-$firewallMap = new FirewallMap();
+// ExceptionListener catches authentication exception and converts them to Response instance.
+// In this case it invites user to enter its credentials by returning 401 response.
+$authTrustResolver = new AuthenticationTrustResolver(AnonymousToken::class, RememberMeToken::class);
+$mainExceptionListener = new ExceptionListener($tokenStorage, $authTrustResolver, $httpUtils, 'main', $basicAuthenticationEntryPoint);
 
 // Add basic http security listener under URLs starting with "/main".
-$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $accessListener]);
+$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $accessListener], $mainExceptionListener);
 
 // ContextListener retrieves previously authenticated token from the session during REQUEST event.
 // It also saves token during RESPONSE event.
@@ -127,13 +131,6 @@ $firewallMap->add(new RequestMatcher('^/front'), [$contextListener, $formAuthLis
 // Create firewall and add it to dispatcher.
 $firewall = new Firewall($firewallMap, $dispatcher);
 $dispatcher->addSubscriber($firewall);
-
-// ExceptionListener catches authentication exception and converts them to Response instance.
-// In this case it invites user to enter its credentials by returning 401 response.
-$authTrustResolver = new AuthenticationTrustResolver(AnonymousToken::class, RememberMeToken::class);
-
-$exceptionListener = new ExceptionListener($tokenStorage, $authTrustResolver, $httpUtils, 'main', $basicAuthenticationEntryPoint);
-$dispatcher->addListener(KernelEvents::EXCEPTION, array($exceptionListener, 'onKernelException'), 1);
 
 $response = $kernel->handle($request); // Launch kernel and retrieve response.
 $response->send(); // Send response.
