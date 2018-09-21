@@ -29,11 +29,11 @@ use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolver;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\RememberMeToken;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManager;
-use Symfony\Component\HttpKernel\KernelEvents;
 
 $request = Request::createFromGlobals(); // HTTP request.
 $tokenStorage = new TokenStorage(); // Service that stores user token.
 $dispatcher = new EventDispatcher();
+$httpUtils = new HttpUtils();
 
 // Controller creates a response to send to the user.
 $controller = new \App\Controller($request, $tokenStorage);
@@ -76,21 +76,18 @@ $accessDecisionManager = new AccessDecisionManager();
 $accessMap = new AccessMap();
 $accessListener = new AccessListener($tokenStorage, $accessDecisionManager, $accessMap, $mainAuthProvider);
 
+// ExceptionListener catches authentication exception and converts them to Response instance.
+// In this case it invites user to enter its credentials by returning 401 response.
+$authTrustResolver = new AuthenticationTrustResolver(AnonymousToken::class, RememberMeToken::class);
+$mainExceptionListener = new ExceptionListener($tokenStorage, $authTrustResolver, $httpUtils, 'main', $basicAuthenticationEntryPoint);
+
 // Create firewall map and add main security listener under URLs starting with "/main".
 $firewallMap = new FirewallMap();
-$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $accessListener]);
+$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $accessListener], $mainExceptionListener);
 
 // Create firewall and add it to dispatcher.
 $firewall = new Firewall($firewallMap, $dispatcher);
 $dispatcher->addSubscriber($firewall);
-
-// ExceptionListener catches authentication exception and converts them to Response instance.
-// In this case it invites user to enter its credentials by returning 401 response.
-$authTrustResolver = new AuthenticationTrustResolver(AnonymousToken::class, RememberMeToken::class);
-$httpUtils = new HttpUtils();
-$exceptionListener = new ExceptionListener($tokenStorage, $authTrustResolver, $httpUtils, 'main', $basicAuthenticationEntryPoint);
-$dispatcher->addListener(KernelEvents::EXCEPTION, array($exceptionListener, 'onKernelException'), 1);
-
 
 $response = $kernel->handle($request); // Launch kernel and retrieve response.
 $response->send(); // Send response.

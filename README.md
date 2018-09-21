@@ -29,8 +29,8 @@ Resume of changes:
 - In [index.php] `$mainSecurityListener` is now of type `BasicAuthenticationListener`.
 - In [index.php] `$anonListener` is replaced with `$accessListener` what throws an authentication exception when token is not present in token storage. 
 This listener can also verify the roles of authenticated user (like `ROLE_USER`).
-- in [index.php] an `$exceptionListener` of type `Symfony\Component\Security\Http\Firewall\ExceptionListener`
-is added to listen to `KernelEvents::EXCEPTION` event. It will start an authentication process by returning 401 HTTP response.
+- in [index.php] an `$mainExceptionListener` of type `Symfony\Component\Security\Http\Firewall\ExceptionListener`
+is added to firewall map. It listen to `KernelEvents::EXCEPTION` event and will start an authentication process by returning 401 HTTP response.
 - in [index.php] `$basicAuthenticationEntryPoint` of type `Symfony\Component\Security\Http\EntryPoint\BasicAuthenticationEntryPoint`
 is added to start/restart an authentication. 
 
