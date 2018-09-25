@@ -5,7 +5,7 @@ that was held 28/08/2018 at JoliCode, Paris.
 
 The slides are available [on my slideshare](https://fr.slideshare.net/VladyslavRiabchenko/scurisation-de-vos-applications-web-laide-du-composant-security-de-symfony).
 
-| :arrow_left: [Task 6] | Task 7 | |
+| :arrow_left: [Task 6] | Task 7 | [Task 8] :arrow_right: |
 | --- | --- | --- |
 
 *Set up login form authentication for another part of the application.*
@@ -53,5 +53,5 @@ Urls to test without rewrite rules must start with `/index.php`, e.g. `/index.ph
 [index.php]: public/index.php
 [Controller]: src/Controller.php 
 [ControllerResolver]: src/ControllerResolver.php
-[HTTP authentication]: https://en.wikipedia.org/wiki/Basic_access_authentication
 [Task 6]: https://github.com/vria/symfony-security-component-use/tree/6-http-basic
+[Task 8]: https://github.com/vria/symfony-security-component-use/tree/8-role-based-authorization
