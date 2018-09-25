@@ -80,7 +80,7 @@ $mainAuthProvider = new DaoAuthenticationProvider($mainUserProvider, $mainUserCh
 
 // Entry point helps user to authenticate.
 // In the case of HTTP basic authentication it returns 401 response to invite user to enter his/her credentials.
-$basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint('Secured area');
+$basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint('Black mesa');
 
 // Create HTTP basic security listener that extracts credentials from headers (RFC 7617).
 $mainSecurityListener = new BasicAuthenticationListener($tokenStorage, $mainAuthProvider, 'main', $basicAuthenticationEntryPoint);
