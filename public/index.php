@@ -18,6 +18,7 @@ use Symfony\Component\Security\Http\AccessMap;
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Http\FirewallMap;
 use Symfony\Component\Security\Http\Firewall;
+use Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener;
 use Symfony\Component\Security\Http\Firewall\ExceptionListener;
 use Symfony\Component\Security\Http\Firewall\BasicAuthenticationListener;
 use Symfony\Component\Security\Http\Firewall\AccessListener;
@@ -25,12 +26,16 @@ use Symfony\Component\Security\Http\Firewall\ContextListener;
 use Symfony\Component\Security\Http\Firewall\UsernamePasswordFormAuthenticationListener;
 use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategy;
 use Symfony\Component\Security\Core\User\InMemoryUserProvider;
+use Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider;
 use Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Core\Authorization\Voter\RoleVoter;
 use Symfony\Component\Security\Core\User\UserChecker;
 use Symfony\Component\Security\Core\Encoder\EncoderFactory;
 use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
 use Symfony\Component\Security\Http\EntryPoint\BasicAuthenticationEntryPoint;
+use Symfony\Component\Security\Http\EntryPoint\FormAuthenticationEntryPoint;
 use Symfony\Component\Security\Core\Authentication\AuthenticationTrustResolver;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\RememberMeToken;
@@ -56,11 +61,34 @@ $kernel = new HttpKernel($dispatcher, $controllerResolver);
 // Create firewall map
 $firewallMap = new FirewallMap();
 
+$authTrustResolver = new AuthenticationTrustResolver(AnonymousToken::class, RememberMeToken::class);
+
+// RoleVoter can determine if authenticated user has necessary roles like 'ROLE_SCIENTIST' or 'ROLE_EMPLOYER'.
+$roleVoter = new RoleVoter();
+
+// AuthenticatedVoter can determine if token is anonymous or fully authentified.
+$authenticatedVoter = new AuthenticatedVoter($authTrustResolver);
+
+// Access decision manager verifies authorisation of authentified token thanks to voters.
+$accessDecisionManager = new AccessDecisionManager([$roleVoter, $authenticatedVoter]);
+
+// Access map defines authorization rules, it maps request to attributes.
+// It helps access listeners to determine the attributes the user must possess.
+$accessMap = new AccessMap();
+$accessMap->add(new RequestMatcher('^/main'), ['ROLE_SCIENTIST']);
+$accessMap->add(new RequestMatcher('^/front/login$'), ['IS_AUTHENTICATED_ANONYMOUSLY']);
+$accessMap->add(new RequestMatcher('^/front'), ['ROLE_EMPLOYER']);
+
 // Create user provider that will be used by authentication listener.
 $mainUserProvider = new InMemoryUserProvider([
     'gordon' => [
         'password' => '$2y$10$50MJW4ov/LHLBdl6uYsxI.7MdWYoJ8K1MqBXfG677nOXbsSVVue6i', // encoded 'freeman'
-        'roles' => ['ROLE_USER'],
+        'roles' => ['ROLE_SCIENTIST'],
+        'enabled' => true,
+    ],
+    'g-man' => [
+        'password' => '$2y$10$.23HMg6E0qsMXYcscJyJBOVFzSC31aWY8wd3CHJeO86dRljos0zie', // encoded 'bureaucrat'
+        'roles' => ['ROLE_EMPLOYER'],
         'enabled' => true,
     ],
 ]);
@@ -86,17 +114,14 @@ $basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint('Secured area
 $mainSecurityListener = new BasicAuthenticationListener($tokenStorage, $mainAuthProvider, 'main', $basicAuthenticationEntryPoint);
 
 // Access listener will throw an exception when no token is already present.
-$accessDecisionManager = new AccessDecisionManager();
-$accessMap = new AccessMap();
-$accessListener = new AccessListener($tokenStorage, $accessDecisionManager, $accessMap, $mainAuthProvider);
+$mainAccessListener = new AccessListener($tokenStorage, $accessDecisionManager, $accessMap, $mainAuthProvider);
 
 // ExceptionListener catches authentication exception and converts them to Response instance.
 // In this case it invites user to enter its credentials by returning 401 response.
-$authTrustResolver = new AuthenticationTrustResolver(AnonymousToken::class, RememberMeToken::class);
 $mainExceptionListener = new ExceptionListener($tokenStorage, $authTrustResolver, $httpUtils, 'main', $basicAuthenticationEntryPoint);
 
 // Add basic http security listener under URLs starting with "/main".
-$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $accessListener], $mainExceptionListener);
+$firewallMap->add(new RequestMatcher('^/main'), [$mainSecurityListener, $mainAccessListener], $mainExceptionListener);
 
 // ContextListener retrieves previously authenticated token from the session during REQUEST event.
 // It also saves token during RESPONSE event.
@@ -125,8 +150,30 @@ $formAuthListener = new UsernamePasswordFormAuthenticationListener(
     ] // Act only on POST to '/front/login_check'
 );
 
+// Access listener will throw an exception when no token is already present.
+$frontAccessListener = new AccessListener($tokenStorage, $accessDecisionManager, $accessMap, $frontAuthProvider);
+
+// Create a security listener that adds anonymous token if none is already present.
+$anonymousAuthenticationProvider = new AnonymousAuthenticationProvider('secret');
+$frontAnonListener = new AnonymousAuthenticationListener($tokenStorage, 'secret', null, $anonymousAuthenticationProvider);
+
+// Entry point that redirects anonymous user to login form when it tries to access a path under "/front".
+$frontAuthenticationEntryPoint = new FormAuthenticationEntryPoint($kernel, $httpUtils, '/front/login');
+
+// ExceptionListener catches authentication exception and converts them to Response instance thanks to entry point.
+$frontExceptionListener = new ExceptionListener($tokenStorage, $authTrustResolver, $httpUtils, 'main', $frontAuthenticationEntryPoint);
+
 // Add login form security listeners under URLs starting with "/front".
-$firewallMap->add(new RequestMatcher('^/front'), [$contextListener, $formAuthListener]);
+// The sequence of listeners is the following:
+// - ContextListener tries to retrieve the user from session if cookie is present
+// - Listens for authentication from is being sent, authentifies the user, constructs a token.
+//   Later, at the end of request, ContextListener will save the token in session and add a cookie.
+// - AnonymousAuthenticationListener will add anonymous token is none is already present.
+//   This is important because we need to allow anonymous users to access the login form.
+// - AccessListener will verify authorization rights of the token.
+//   Either it is AnonymousToken that is allowed to access "/front/login" path
+//   or UsernamePasswordToken with ROLE_EMPLOYER that is allowed any path under "/front".
+$firewallMap->add(new RequestMatcher('^/front'), [$contextListener, $formAuthListener, $frontAnonListener, $frontAccessListener], $frontExceptionListener);
 
 // Create firewall and add it to dispatcher.
 $firewall = new Firewall($firewallMap, $dispatcher);
